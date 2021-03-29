@@ -2,6 +2,8 @@ package com.labproject.SkyTracker.SkyTrackerAPI;
 
 import com.labproject.SkyTracker.OpenSky.Plane;
 import com.labproject.SkyTracker.OpenSky.PlaneToTrack;
+import com.labproject.SkyTracker.OpenSky.SnapShots;
+import com.sun.xml.bind.v2.runtime.unmarshaller.LocatorEx;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +17,13 @@ public class SkyTrackerService {
 
     private final SkyTrackerPlanesToTrackRepository planesToTrackRepository;
 
+    private final SkyTrackerSnapShotRepository snapShotRepository;
+
     @Autowired
-    public SkyTrackerService(SkyTrackerRepository planeRepository, SkyTrackerPlanesToTrackRepository planesToTrackRepository) {
+    public SkyTrackerService(SkyTrackerRepository planeRepository, SkyTrackerPlanesToTrackRepository planesToTrackRepository, SkyTrackerSnapShotRepository snapShotRepository) {
         this.planeRepository = planeRepository;
         this.planesToTrackRepository = planesToTrackRepository;
+        this.snapShotRepository = snapShotRepository;
     }
 
     public List<Plane> GetPlanes() {
@@ -35,6 +40,12 @@ public class SkyTrackerService {
 
     public Plane GetPlane(String icao24) {
         return planeRepository.findPlaneById(icao24).get();
+    }
+
+    public List<SnapShots> getSnapShotsByPlaneID(Long id) throws IllegalAccessException {
+        if(!planesToTrackRepository.existsById(id))
+            throw new IllegalAccessException("planeToTrack not found in repository");
+        return snapShotRepository.findByPlaneToTrackId(id);
     }
 
     public boolean isPlaneInDatabase(Plane plane){
@@ -97,5 +108,15 @@ public class SkyTrackerService {
 
         planeRepository.save(newPlane);
         System.out.println(plane);
+    }
+
+    public void addSnapShotEntry(SnapShots s, Long id) throws IllegalAccessException {
+        if(!planesToTrackRepository.existsById(id))
+            throw new IllegalAccessException("planeToTrack not found in repository");
+        System.out.println("trying to save snapshot");
+        planesToTrackRepository.findById(id).map(planeToTrack -> {s.setPlaneToTrack(planeToTrack);
+        System.out.println("saved snapshot");
+        return (SnapShots)snapShotRepository.save(s);
+        });
     }
 }

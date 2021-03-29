@@ -3,6 +3,7 @@ package com.labproject.SkyTracker.SkyTrackerAPI;
 import com.labproject.SkyTracker.OpenSky.OpenSkyController;
 import com.labproject.SkyTracker.OpenSky.Plane;
 import com.labproject.SkyTracker.OpenSky.PlaneToTrack;
+import com.labproject.SkyTracker.OpenSky.SnapShots;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,12 +22,14 @@ public class SkyTrackerController {
     private final SkyTrackerService skyTrackerService;
 
     @Autowired
-    public SkyTrackerController( SkyTrackerService skyTrackerService, OpenSkyController openSkyController){ this.skyTrackerService = skyTrackerService; this.openSkyController = openSkyController; }
+    public SkyTrackerController( SkyTrackerService skyTrackerService, OpenSkyController openSkyController){
+        this.skyTrackerService = skyTrackerService;
+        this.openSkyController = openSkyController;
+    }
 
     private List<Plane> getAllPlanesCall(){
         return openSkyController.getPlanes("lamin=45.8389&lomin=5.9962&lamax=47.8229&lomax=10.5226");
     }
-
 
     @GetMapping("/api/v1/planes")
     public List<Plane> getAllPlanesFromDatabase(){
@@ -57,6 +60,22 @@ public class SkyTrackerController {
     public PlaneToTrack getTrackedPlane(@PathVariable String id){
         return skyTrackerService.GetTrackingPlane(id);
     }
+
+
+    @GetMapping("/api/v1/planes/track/snapshots/{id}")
+    public List<SnapShots> getPlaneToTrackSnapShots(@PathVariable String id){
+        Long idToUse = skyTrackerService.GetTrackingPlane(id).getId();
+
+        //Try fetching the list
+        List<SnapShots> snapShots = null;
+        try {
+            snapShots = skyTrackerService.getSnapShotsByPlaneID(idToUse);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return snapShots;
+    }
+
 
     @Scheduled(fixedRate = 30000L)
     private void updateAllDatabasePlanes(){
@@ -99,7 +118,16 @@ public class SkyTrackerController {
             //Copy ID over so it updates the right entry on the database
             tmp.setId(planeToTrackList.get(i).getId());
 
-            //Try to add to database
+            SnapShots newSnapShot = new SnapShots(tmp.getLongitude(),tmp.getLatitude(),tmp.getVelocity());
+
+            //Try to add to SnapShot database
+            try {
+                skyTrackerService.addSnapShotEntry(newSnapShot, tmp.getId());
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+
+            //Try to add or update if already exists to PlaneToTrack database
             try {
                 if(skyTrackerService.isPlaneInTrackingDatabase(tmp)){
                     skyTrackerService.updateTrackingPlane(tmp);

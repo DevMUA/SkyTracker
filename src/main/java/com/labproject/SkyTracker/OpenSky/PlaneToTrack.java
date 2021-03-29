@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
 import java.util.Arrays;
+import java.util.Set;
 
 @Entity
 @Table
@@ -21,7 +22,6 @@ public class PlaneToTrack {
             strategy = GenerationType.SEQUENCE,
             generator = "planetotrack_sequence"
     )
-
     private Long Id;
     private String icao24;
     private String callsign;
@@ -40,6 +40,9 @@ public class PlaneToTrack {
     private String squawk;
     private boolean spi;
     private int position_source;
+
+    @OneToMany(mappedBy = "planeToTrack", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<SnapShots> snapShots;
 
     public PlaneToTrack(){}
 
