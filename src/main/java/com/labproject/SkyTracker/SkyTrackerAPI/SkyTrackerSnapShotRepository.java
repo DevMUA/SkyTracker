@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface SkyTrackerSnapShotRepository extends JpaRepository<SnapShots,Long> {
 
-    @Query("SELECT s FROM SnapShots s")
+    @Query("SELECT s FROM SnapShots s WHERE s.planeToTrack.Id = ?1")
     List findByPlaneToTrackId(Long planeToTrackId);
 }

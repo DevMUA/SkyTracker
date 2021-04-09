@@ -1,9 +1,12 @@
 package com.labproject.SkyTracker.SkyTrackerAPI;
 
+import com.labproject.SkyTracker.Kafka.KafkaController;
 import com.labproject.SkyTracker.OpenSky.OpenSkyController;
 import com.labproject.SkyTracker.OpenSky.Plane;
 import com.labproject.SkyTracker.OpenSky.PlaneToTrack;
 import com.labproject.SkyTracker.OpenSky.SnapShots;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -15,6 +18,9 @@ import java.util.List;
 @RestController
 @EnableScheduling
 public class SkyTrackerController {
+
+    private static final Logger logger  = LoggerFactory.getLogger(SkyTrackerController.class);
+    private static final String TOPIC = "SkyTrackerController";
 
     @Autowired
     private final OpenSkyController openSkyController;
@@ -45,8 +51,10 @@ public class SkyTrackerController {
 
     @PostMapping("/api/v1/planes/track/{id}")
     public void trackPlane(@PathVariable String id){
+        logAndSendMessage("Got a request to track one plane with id: " + id);
         PlaneToTrack newPlane = new PlaneToTrack();
         newPlane.convertPlane(skyTrackerService.GetPlane(id));
+        logAndSendMessage("Adding Track plane with id " + id + " to Tracking Plane Database");
         //Try to add to database
         try {
             skyTrackerService.addNewTrackingPlane(newPlane);
@@ -58,6 +66,7 @@ public class SkyTrackerController {
 
     @GetMapping("/api/v1/planes/track/{id}")
     public PlaneToTrack getTrackedPlane(@PathVariable String id){
+        System.out.println("RECEIVED A CALL TO THIS-------------------");
         return skyTrackerService.GetTrackingPlane(id);
     }
 
@@ -79,37 +88,36 @@ public class SkyTrackerController {
 
     @Scheduled(fixedRate = 30000L)
     private void updateAllDatabasePlanes(){
-        System.out.println("Calling API");
+        logAndSendMessage("Updating General Planes Database");
+        logAndSendMessage("Calling API");
         List<Plane> planeList = getAllPlanesCall();
-        System.out.println("Updating Database");
+        logAndSendMessage("API call finished");
         for(int i = 0; i< planeList.size(); i++){
             //Try to add to database
             try {
                 if(skyTrackerService.isPlaneInDatabase(planeList.get(i))){
                     skyTrackerService.updatePlane(planeList.get(i));
-                    System.out.println("update database entry : " + i);
                 }
                 else {
                     skyTrackerService.addNewPlane(planeList.get(i));
-                    System.out.println("added to database");
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
+
+        logAndSendMessage("Finished updating General Planes Database");
     }
-    @Scheduled(fixedRate = 5000L)
+    @Scheduled(fixedRate = 10000L)
     private void updateAllTrackingDatabasePlanes(){
 
         //Get Current Planes that are being tracked in the database
         List<PlaneToTrack> planeToTrackList = skyTrackerService.GetTrackingPlanes();
 
-        System.out.println("Updating Database");
-        System.out.println("Size is " + planeToTrackList.size());
+        logAndSendMessage("Updating Tracking Planes Database with size " + planeToTrackList.size());
 
         //Iterate through every plane and do an API call for it
         for(int i = 0; i< planeToTrackList.size(); i++){
-            System.out.println("Calling API");
 
             //Create PlaneToTrack obj with all NULL values
             PlaneToTrack tmp = new PlaneToTrack();
@@ -119,27 +127,33 @@ public class SkyTrackerController {
             tmp.setId(planeToTrackList.get(i).getId());
 
             SnapShots newSnapShot = new SnapShots(tmp.getLongitude(),tmp.getLatitude(),tmp.getVelocity());
-
+            logAndSendMessage("Adding new snapshot for plane with id: " + tmp.getIcao24());
             //Try to add to SnapShot database
             try {
                 skyTrackerService.addSnapShotEntry(newSnapShot, tmp.getId());
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
+            logAndSendMessage("Successfully added snapshot for plane with id: " + tmp.getIcao24());
 
             //Try to add or update if already exists to PlaneToTrack database
             try {
                 if(skyTrackerService.isPlaneInTrackingDatabase(tmp)){
                     skyTrackerService.updateTrackingPlane(tmp);
-                    System.out.println("update database entry : " + i);
                 }
                 else {
                     skyTrackerService.addNewTrackingPlane(tmp);
-                    System.out.println("added to database");
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
+
+        logAndSendMessage("Finished updating Tracking Planes Database ");
+    }
+
+    private void logAndSendMessage(String message){
+        logger.info(String.format("************* SkyTrackerController : %s",message));
+        //KafkaController.sendMessage(TOPIC,message);
     }
 }

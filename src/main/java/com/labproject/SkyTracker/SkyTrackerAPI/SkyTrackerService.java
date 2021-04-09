@@ -70,7 +70,6 @@ public class SkyTrackerService {
             throw new IllegalAccessException("plane already in repository");
         }
         planesToTrackRepository.save(p);
-        System.out.println(p);
     }
 
     public void updateTrackingPlane(PlaneToTrack plane) throws IllegalAccessException {
@@ -92,7 +91,6 @@ public class SkyTrackerService {
             throw new IllegalAccessException("plane already in repository");
         }
         planeRepository.save(plane);
-        System.out.println(plane);
     }
 
     public void updatePlane(Plane plane) throws IllegalAccessException {
@@ -107,15 +105,12 @@ public class SkyTrackerService {
         ,plane.isSpi(),plane.getPosition_source());
 
         planeRepository.save(newPlane);
-        System.out.println(plane);
     }
 
     public void addSnapShotEntry(SnapShots s, Long id) throws IllegalAccessException {
         if(!planesToTrackRepository.existsById(id))
             throw new IllegalAccessException("planeToTrack not found in repository");
-        System.out.println("trying to save snapshot");
         planesToTrackRepository.findById(id).map(planeToTrack -> {s.setPlaneToTrack(planeToTrack);
-        System.out.println("saved snapshot");
         return (SnapShots)snapShotRepository.save(s);
         });
     }
