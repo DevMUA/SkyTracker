@@ -8,6 +8,15 @@ const AppProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [planes, setPlanes] = useState([]);
 
+  React.useEffect(() => {
+    const interval = setInterval(async () => {
+      console.log("Called API!");
+      //localhost:8080/api/v1/planes/track/snapshots/
+      fetchPlanes();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const fetchPlanes = useCallback(async () => {
     setLoading(true);
     try {
