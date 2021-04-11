@@ -4,23 +4,25 @@ import {
   useLoadScript,
   GoogleMap,
   Marker,
+  InfoWindow,
 } from "@react-google-maps/api";
-import React from "react";
+import React, {useState} from "react";
 import planeMapIcon from "../planeMapIcon.png";
 
 const libraries = ["places"];
 const mapContainerStyle = {
-  width: "50vw",
-  height: "50vh",
+  width: "80vw",
+  height: "80vh",
 };
 
 export default function PlaneMap({ id, longitude, latitude }) {
   const center = { lat: parseFloat(latitude), lng: parseFloat(longitude) };
   console.log(center);
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: "",
+    googleMapsApiKey: "AIzaSyAUg3b1KxFjMA56NkT2TYyqpm4cFOssCoA",
     libraries,
   });
+  const [selected, setSelected] = useState(null);
 
   if (loadError) return "error loading maps";
   if (!isLoaded) return "loading maps";
@@ -34,7 +36,21 @@ export default function PlaneMap({ id, longitude, latitude }) {
             url: planeMapIcon,
             scaledSize: new window.google.maps.Size(30, 30),
           }}
+          onClick={() => {
+            setSelected(true);
+          }}
+
         />
+        {selected && (
+            <InfoWindow
+                position={{ lat: latitude, lng: longitude }}
+                onCloseClick={() => {
+                  setSelected(null);
+                }}
+            >
+              <div><p>lat: {latitude}</p><p>lng: {longitude}</p></div>
+            </InfoWindow>
+        )}
       </GoogleMap>
     </div>
   );
