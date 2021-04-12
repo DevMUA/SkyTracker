@@ -30,4 +30,17 @@ public class KafkaConfig {
 
         return new DefaultKafkaConsumerFactory<>(config);
     }
+
+    @Bean
+    public KafkaTemplate<String, Float> kafkaTemplate(){
+        return new KafkaTemplate<>(producerFactory());
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Float> kafkaListenerContainerFactory(){
+        ConcurrentKafkaListenerContainerFactory<String, Float> factory = new ConcurrentKafkaListenerContainerFactory();
+        factory.setConsumerFactory(consumerFactory());
+
+        return factory;
+    }
 }

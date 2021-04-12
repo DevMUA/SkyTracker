@@ -16,10 +16,18 @@ export default function SinglePlane() {
     const interval = setInterval(async () => {
       console.log("Called API!");
       //localhost:8080/api/v1/planes/track/snapshots/
-
       try {
         const response = await fetch(
-          `http://localhost:8080/api/v1/planes/track/snapshots/${icao24}`
+            `http://localhost:8082/api/v1/kafkaProducer/track/${icao24}`
+        );
+        const data = await response;
+        window.alert(data);
+      } catch (error) {
+        console.log(error);
+      }
+      try {
+        const response = await fetch(
+          `http://localhost:8082/api/v1/planes/track/snapshots/${icao24}`
         );
         const data = await response.json();
         const planeSnapshots = {
@@ -60,7 +68,7 @@ export default function SinglePlane() {
       }
       try {
         const response = await fetch(
-          `http://localhost:8080/api/v1/planes/track/${icao24}`
+          `http://localhost:8082/api/v1/planes/track/${icao24}`
         );
         const data = await response.json();
         if (data) {
@@ -101,7 +109,7 @@ export default function SinglePlane() {
       //POST TO ADD TRACK PLANE TO DATABASE
       try {
         const resp = await axios.post(
-          `http://localhost:8080/api/v1/planes/track/${icao24}`
+          `http://localhost:8082/api/v1/planes/track/${icao24}`
         );
       } catch (error) {
         console.log(error);
@@ -109,7 +117,7 @@ export default function SinglePlane() {
 
       try {
         const response = await fetch(
-          `http://localhost:8080/api/v1/planes/track/${icao24}`
+          `http://localhost:8082/api/v1/planes/track/${icao24}`
         );
         const data = await response.json();
         if (data) {

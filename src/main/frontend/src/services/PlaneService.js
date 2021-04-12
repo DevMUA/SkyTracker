@@ -1,8 +1,8 @@
 import axios from "axios";
 
-const PLANES_REST_API_URL = "http://localhost:8080/api/v1/planes";
-const PLANES_TRACK_API_URL = "http://localhost:8080/api/v1/planes/track/";
-const PLANES_TRACK_SNAPSHOTS_API_URL = "http://localhost:8080/api/v1/planes/track/snapshots/";
+const PLANES_REST_API_URL = "http://localhost:8082/api/v1/planes";
+const PLANES_TRACK_API_URL = "http://localhost:8082/api/v1/planes/track/";
+const PLANES_TRACK_SNAPSHOTS_API_URL = "http://localhost:8082/api/v1/planes/track/snapshots/";
 
 class PlaneService {
 

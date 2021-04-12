@@ -14,6 +14,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.Console;
 import java.util.List;
 
 @CrossOrigin("*")
@@ -57,9 +58,6 @@ public class SkyTrackerController {
     public List<Plane> getPlane(@PathVariable String id){
         String Query = "icao24=" + id;
         List<Plane> planeList = openSkyController.getPlanes(Query);
-        for(Plane p: planeList){
-            kafkaTemplate.send(p.getIcao24(), p.getVelocity());
-        }
         return planeList;
     }
 
@@ -83,16 +81,6 @@ public class SkyTrackerController {
         System.out.println("RECEIVED A CALL TO THIS-------------------");
         return skyTrackerService.GetTrackingPlane(id);
     }
-
-    @GetMapping("/api/v1/kafka/track/{id}")
-    @KafkaListener(topics = "SkyTrackerController", groupId = "group_1")
-    public String underVelLimit(@PathVariable String id){
-        PlaneToTrack p = skyTrackerService.GetTrackingPlane(id);
-        if(p.getVelocity() > 200) return "true";
-        else if(p.getVelocity() < 100 && p.getVelocity() < 0) return "true";
-        else return "false";
-    }
-
 
     @GetMapping("/api/v1/planes/track/snapshots/{id}")
     public List<SnapShots> getPlaneToTrackSnapShots(@PathVariable String id){
