@@ -8,6 +8,7 @@ import com.labproject.SkyTracker.OpenSky.SnapShots;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,7 +30,7 @@ public class SkyTrackerController {
     private final SkyTrackerService skyTrackerService;
 
     @Autowired
-    private KafkaTemplate<String, List<Plane>> kafkaTemplate;
+    private KafkaTemplate<String, Float> kafkaTemplate;
 
     @Autowired
     public SkyTrackerController( SkyTrackerService skyTrackerService, OpenSkyController openSkyController){
@@ -50,7 +51,9 @@ public class SkyTrackerController {
     public List<Plane> getPlane(@PathVariable String id){
         String Query = "icao24=" + id;
         List<Plane> planeList = openSkyController.getPlanes(Query);
-        kafkaTemplate.send(TOPIC, planeList);
+        for(Plane p: planeList){
+            kafkaTemplate.send(p.getIcao24(), p.getVelocity());
+        }
         return planeList;
     }
 
@@ -73,6 +76,15 @@ public class SkyTrackerController {
     public PlaneToTrack getTrackedPlane(@PathVariable String id){
         System.out.println("RECEIVED A CALL TO THIS-------------------");
         return skyTrackerService.GetTrackingPlane(id);
+    }
+
+    @GetMapping("/api/v1/kafka/track/{id}")
+    @KafkaListener(topics = "SkyTrackerController", groupId = "group_1")
+    public String underVelLimit(@PathVariable String id){
+        PlaneToTrack p = skyTrackerService.GetTrackingPlane(id);
+        if(p.getVelocity() > 200) return "true";
+        else if(p.getVelocity() < 100 && p.getVelocity() < 0) return "true";
+        else return "false";
     }
 
 
