@@ -19,7 +19,7 @@ export default function PlaneMap({ id, longitude, latitude }) {
   const center = { lat: parseFloat(latitude), lng: parseFloat(longitude) };
   console.log(center);
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: "AIzaSyAUg3b1KxFjMA56NkT2TYyqpm4cFOssCoA",
+    googleMapsApiKey: "",
     libraries,
   });
   const [selected, setSelected] = useState(null);
