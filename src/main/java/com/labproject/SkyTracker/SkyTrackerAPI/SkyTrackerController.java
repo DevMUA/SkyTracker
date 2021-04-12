@@ -24,6 +24,9 @@ public class SkyTrackerController {
     private static final String TOPIC = "SkyTrackerController";
 
     @Autowired
+    private KafkaController kafkaController;
+
+    @Autowired
     private final OpenSkyController openSkyController;
 
     private final SkyTrackerService skyTrackerService;
@@ -32,17 +35,20 @@ public class SkyTrackerController {
     private KafkaTemplate<String, List<Plane>> kafkaTemplate;
 
     @Autowired
-    public SkyTrackerController( SkyTrackerService skyTrackerService, OpenSkyController openSkyController){
+    public SkyTrackerController( SkyTrackerService skyTrackerService, OpenSkyController openSkyController,KafkaController kafkaController ){
         this.skyTrackerService = skyTrackerService;
         this.openSkyController = openSkyController;
+        this.kafkaController = kafkaController;
     }
 
-    private List<Plane> getAllPlanesCall(){
+    @GetMapping("/api/v1/test")
+    public List<Plane> getAllPlanesCall(){
         return openSkyController.getPlanes("lamin=45.8389&lomin=5.9962&lamax=47.8229&lomax=10.5226");
     }
 
     @GetMapping("/api/v1/planes")
     public List<Plane> getAllPlanesFromDatabase(){
+        logAndSendMessage("Received call to get planes list from DATABASE");
         return skyTrackerService.GetPlanes();
     }
 
@@ -110,8 +116,7 @@ public class SkyTrackerController {
                 e.printStackTrace();
             }
         }
-
-        logAndSendMessage("Finished updating General Planes Database");
+        logAndSendMessage("Finished updating General Planes Database " + planeList.size() + " from API call " + skyTrackerService.GetPlanes().size() + " database size");
     }
     @Scheduled(fixedRate = 10000L)
     private void updateAllTrackingDatabasePlanes(){
@@ -159,6 +164,6 @@ public class SkyTrackerController {
 
     private void logAndSendMessage(String message){
         logger.info(String.format("************* SkyTrackerController : %s",message));
-        //KafkaController.sendMessage(TOPIC,message);
+        kafkaController.sendMessage(TOPIC,message);
     }
 }

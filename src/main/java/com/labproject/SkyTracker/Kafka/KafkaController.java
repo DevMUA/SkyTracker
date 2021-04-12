@@ -2,20 +2,22 @@ package com.labproject.SkyTracker.Kafka;
 
 import com.labproject.SkyTracker.SkyTrackerAPI.SkyTrackerController;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Component;
 
+@EnableKafka
+@Component
 public class KafkaController {
 
-    private final SkyTrackerController producer;
-
     @Autowired
-    private static KafkaTemplate kafkaTemplate;
+    private KafkaTemplate<String,String> kafkaTemplate;
 
-    public KafkaController(SkyTrackerController producer) {
-        this.producer = producer;
+    public KafkaController() {
+
     }
 
-    public static void sendMessage(String TOPIC,String message){
+    public void sendMessage(String TOPIC,String message){
         kafkaTemplate.send(TOPIC,message);
     }
 }
