@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useCallback } from "react";
 
-const url = "http://localhost:8082/api/v1/planes";
+const url = "http://localhost:8080/api/v1/planes";
 const AppContext = React.createContext();
 
 const AppProvider = ({ children }) => {

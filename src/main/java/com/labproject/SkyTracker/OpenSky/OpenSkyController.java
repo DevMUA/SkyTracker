@@ -26,7 +26,10 @@ public class OpenSkyController {
         SkyResponseObject obj = restTemplate.getForObject(URL+parameters,SkyResponseObject.class);
 
         List<Plane> planes = new LinkedList<Plane>();
-        System.out.println(obj.getStates().length);
+        if(obj.getStates() == null){
+            List<Plane> nullList = new LinkedList<Plane>();
+            return nullList;
+        }
         for(int i = 0; i < obj.getStates().length; i++){
             planes.add(fromSkyResponseOjectToPlane(obj,i));
         }
