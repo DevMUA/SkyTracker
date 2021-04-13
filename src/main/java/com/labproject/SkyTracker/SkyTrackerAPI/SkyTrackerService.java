@@ -38,6 +38,13 @@ public class SkyTrackerService {
         return planesToTrackRepository.findPlaneById(icao24).get();
     }
 
+    public boolean isTrackingPlanePresent(String icao24) {
+        Optional<PlaneToTrack> p = planesToTrackRepository.findPlaneById(icao24);
+        if(p.isPresent())
+            return true;
+        return false;
+    }
+
     public Plane GetPlane(String icao24) {
         return planeRepository.findPlaneById(icao24).get();
     }

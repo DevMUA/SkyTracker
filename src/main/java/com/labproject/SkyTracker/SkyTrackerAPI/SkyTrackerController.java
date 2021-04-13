@@ -14,8 +14,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.Console;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 @CrossOrigin("*")
 @RestController
@@ -37,7 +38,7 @@ public class SkyTrackerController {
     private KafkaTemplate<String, Float> kafkaTemplate;
 
     @Autowired
-    public SkyTrackerController( SkyTrackerService skyTrackerService, OpenSkyController openSkyController,KafkaController kafkaController ){
+    public SkyTrackerController( SkyTrackerService skyTrackerService, OpenSkyController openSkyController,KafkaController kafkaController){
         this.skyTrackerService = skyTrackerService;
         this.openSkyController = openSkyController;
         this.kafkaController = kafkaController;
@@ -58,6 +59,9 @@ public class SkyTrackerController {
     public List<Plane> getPlane(@PathVariable String id){
         String Query = "icao24=" + id;
         List<Plane> planeList = openSkyController.getPlanes(Query);
+//        for(Plane p: planeList){
+//               kafkaTemplate.send(p.getIcao24(), p.getVelocity());
+//        }
         return planeList;
     }
 
@@ -78,22 +82,40 @@ public class SkyTrackerController {
 
     @GetMapping("/api/v1/planes/track/{id}")
     public PlaneToTrack getTrackedPlane(@PathVariable String id){
-        System.out.println("RECEIVED A CALL TO THIS-------------------");
-        return skyTrackerService.GetTrackingPlane(id);
+        if(skyTrackerService.isTrackingPlanePresent(id))
+            return skyTrackerService.GetTrackingPlane(id);
+        else
+            return null;
     }
+
+//    @GetMapping("/api/v1/kafka/track/{id}")
+//    @KafkaListener(topics = "SkyTrackerController", groupId = "group_1")
+//    public String underVelLimit(@PathVariable String id){
+//        PlaneToTrack p = skyTrackerService.GetTrackingPlane(id);
+//        if(p.getVelocity() > 200) return "true";
+//        else if(p.getVelocity() < 100 && p.getVelocity() < 0) return "true";
+//        else return "false";
+//    }
+
 
     @GetMapping("/api/v1/planes/track/snapshots/{id}")
     public List<SnapShots> getPlaneToTrackSnapShots(@PathVariable String id){
-        Long idToUse = skyTrackerService.GetTrackingPlane(id).getId();
+        if(skyTrackerService.isTrackingPlanePresent(id)) {
+            Long idToUse = skyTrackerService.GetTrackingPlane(id).getId();
 
-        //Try fetching the list
-        List<SnapShots> snapShots = null;
-        try {
-            snapShots = skyTrackerService.getSnapShotsByPlaneID(idToUse);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            //Try fetching the list
+            List<SnapShots> snapShots = null;
+            try {
+                snapShots = skyTrackerService.getSnapShotsByPlaneID(idToUse);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+            return snapShots;
         }
-        return snapShots;
+        else{
+            List<SnapShots> s = new LinkedList<SnapShots>();
+            return s;
+        }
     }
 
 

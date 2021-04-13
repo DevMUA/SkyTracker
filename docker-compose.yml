@@ -13,6 +13,7 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: admin
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_KAFKA_BOOTSTRAPSERVERS: kafka:29092
     depends_on:
       - db
       - kafka
@@ -50,6 +51,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
+      POSTGRES_DB: postgres
     networks:
       - broker-kafka
 
