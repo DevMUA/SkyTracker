@@ -82,9 +82,11 @@ public class SkyTrackerController {
 
     @GetMapping("/api/v1/planes/track/{id}")
     public PlaneToTrack getTrackedPlane(@PathVariable String id){
-        if(skyTrackerService.isTrackingPlanePresent(id))
+        if(skyTrackerService.isTrackingPlanePresent(id)) {
+            PlaneToTrack p = skyTrackerService.GetTrackingPlane(id);
+            logAndSendMessage(Float.toString(p.getVelocity()));
             return skyTrackerService.GetTrackingPlane(id);
-        else
+        }else
             return null;
     }
 
